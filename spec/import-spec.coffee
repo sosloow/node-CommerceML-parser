@@ -66,5 +66,6 @@ describe 'importer', ->
         db.collection('products')
           .findOne _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4',
           (err, prod) ->
+            expect(prod.name).toBe 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
             expect(prod.prices).toContain price: '11'
             done()

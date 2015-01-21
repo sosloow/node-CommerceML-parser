@@ -13,7 +13,7 @@ module.exports = (db) ->
 
     bulk = db.collection(colName).initializeUnorderedBulkOp()
     data.forEach (entry) ->
-      bulk.find(_id: entry._id).updateOne(_.omit(entry, '_id'))
+      bulk.find(_id: entry._id).updateOne($set: _.omit(entry, '_id'))
 
     bulk.execute done
 
