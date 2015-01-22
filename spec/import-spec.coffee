@@ -7,7 +7,7 @@ describe 'importer', ->
     MongoClient.connect url, (err, testDb) ->
       return done(err) if err
       db = testDb
-      importer = require('../import')(testDb)
+      importer = require('../lib/import')(testDb)
 
       db.dropDatabase done
 

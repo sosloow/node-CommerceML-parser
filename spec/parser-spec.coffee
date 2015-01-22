@@ -1,4 +1,4 @@
-CmlParser = require '../cml-parser'
+CmlParser = require '../lib/cml-parser'
 
 describe 'parser', ->
   importXml = offersXml = null

@@ -13,7 +13,7 @@ module.exports = (grunt) ->
 
     watch:
       test:
-        files: ['./*.coffee', 'spec/*.coffee']
+        files: ['lib/*.coffee', 'spec/*.coffee']
         tasks: ['jasmine_node']
 
   require('load-grunt-tasks')(grunt)
