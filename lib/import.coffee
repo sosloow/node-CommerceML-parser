@@ -31,27 +31,29 @@ module.exports = (db) ->
 
     bulk.execute done
 
-  importAll = (done) ->
-    parser.xmlFromFile path.join(config.xmlDir, 'import.xml'),
-    (err, xml) ->
-      return done(err) if err
-      async.parallel [
-        _.partial saveToCollection, 'groups', parser.parseGroups(xml)
-        _.partial saveToCollection, 'properties', parser.parseProps(xml)
-        _.partial saveToCollection, 'products', parser.parseProducts(xml)
-      ], (err) ->
-        return done(err) if err
-
+  processFile = (filename, done) ->
+    switch filename
+      when 'import.xml'
+        parser.xmlFromFile path.join(config.xmlDir, 'import.xml'),
+        (err, xml) ->
+          return done(err) if err
+          async.parallel [
+            _.partial saveToCollection, 'groups', parser.parseGroups(xml)
+            _.partial saveToCollection, 'properties', parser.parseProps(xml)
+            _.partial saveToCollection, 'products', parser.parseProducts(xml)
+          ], done
+      when 'offers.xml'
         parser.xmlFromFile path.join(config.xmlDir, 'offers.xml'),
         (err, offersXml) ->
           return done(err) if err
-
           updateCollection 'products', parser.parsePrices(offersXml), done
+      else
+        done('invalid filename. Must be import.xml or offers.xml')
 
   return {
     saveGroups: _.partial(saveToCollection, 'groups')
     saveProperties: _.partial(saveToCollection, 'properties')
     saveProducts: _.partial(saveToCollection, 'products')
     savePrices: _.partial(updateCollection, 'products')
-    importAll: importAll
+    processFile: processFile
   }

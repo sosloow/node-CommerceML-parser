@@ -96,10 +96,10 @@ handlers =
   # Если произошла необрабатываемая ошибка уровня ядра продукта
   # или sql-запроса, то в таком случае будет возвращен html-код.
   processFiles: (req, res) ->
-    importer.importAll (err) ->
+    importer.processFile req.query.filename, (err) ->
       if err
         console.log err.stack
-        return res.status(400).send('failure')
+        return res.status(400).send('failure\n')
 
       res.send('success\nxml processed\n')
 
