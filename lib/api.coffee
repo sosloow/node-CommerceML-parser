@@ -40,7 +40,9 @@ handlers =
   # Примечание:
   # все последующие запросы к 1С-Битрикс сопровождаются выставлением
   # со стороны 1С имени и значения Cookie, полученными по команде "checkauth".
-  checkAuth: (req, res) -> res.send 'success\n'
+  checkAuth: (req, res) ->
+    console.log 'here'
+    res.send 'success\n'
 
   # Далее следует запрос 1С вида:
   # 1c_exchange.php?type=sale&mode=init
@@ -97,7 +99,19 @@ handlers =
 
 unless api.get('env') == 'test'
   api.all '/api/1cexchange', handlers.basicAuth
-api.get '/api/1cexchange', (req, res) -> res.send 'send posts'
+
+api.get '/api/1cexchange', (req, res) ->
+  switch req.body.mode
+    when 'checkauth'
+      handlers.checkAuth(req, res)
+    when 'init'
+      handlers.init(req, res)
+    when 'file'
+      handlers.file(req, res)
+    when 'import'
+      handlers.processFiles(req, res)
+    else
+      res.status(400).end()
 
 api.post '/api/1cexchange', (req, res) ->
   switch req.body.mode
