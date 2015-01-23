@@ -101,7 +101,7 @@ handlers =
         console.log err.stack
         return res.status(400).send('failure')
 
-      res.end()
+      res.send('success\nxml processed\n')
 
 api.use handlers.bodyParser
 unless api.get('env') == 'test'
@@ -120,12 +120,8 @@ api.get '/api/1cexchange', (req, res) ->
 
 api.post '/api/1cexchange', (req, res) ->
   switch req.query.mode
-    when 'init'
-      handlers.init(req, res)
     when 'file'
       handlers.file(req, res)
-    when 'import'
-      handlers.processFiles(req, res)
     else
       res.status(400).end()
 
