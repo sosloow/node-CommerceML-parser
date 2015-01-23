@@ -15,7 +15,6 @@ api.set 'port', process.env.PORT || config.port || 3010
 api.use bodyParser.urlencoded(extended: false)
 api.set 'env', process.env.NODE_ENV || 'development'
 if api.get('env') == 'development'
-  api.use errorHandler()
   api.use logger('dev')
 
 handlers =
@@ -98,6 +97,7 @@ handlers =
 
 unless api.get('env') == 'test'
   api.all '/api/1cexchange', handlers.basicAuth
+api.get '/api/1cexchange', (req, res) -> res.send 'send posts'
 
 api.post '/api/1cexchange', (req, res) ->
   switch req.body.mode
