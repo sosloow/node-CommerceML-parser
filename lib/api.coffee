@@ -2,7 +2,6 @@ path = require 'path'
 fs = require 'fs-extra'
 http = require 'http'
 express = require 'express'
-bodyParser = require 'body-parser'
 basicAuth = require 'basic-auth'
 getRawBody = require 'raw-body'
 logger = require 'morgan'
@@ -13,7 +12,6 @@ importer = require './import'
 api = express()
 
 api.set 'port', process.env.PORT || config.port || 3010
-api.use bodyParser.urlencoded(extended: false)
 api.set 'env', process.env.NODE_ENV || 'development'
 if api.get('env') == 'development'
   api.use logger('dev')
@@ -25,7 +23,6 @@ handlers =
       limit: '500mb'
       encoding: 'utf8',
       (err, string) ->
-        console.log 'sream'
         return next(err) if (err)
 
         req.rawBody = string
@@ -107,8 +104,8 @@ handlers =
       res.end()
 
 api.use handlers.bodyParser
-# unless api.get('env') == 'test'
-  # api.all '/api/1cexchange', handlers.basicAuth
+unless api.get('env') == 'test'
+  api.all '/api/1cexchange', handlers.basicAuth
 
 api.get '/api/1cexchange', (req, res) ->
   switch req.query.mode
