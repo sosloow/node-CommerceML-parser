@@ -4,6 +4,7 @@ http = require 'http'
 express = require 'express'
 bodyParser = require 'body-parser'
 basicAuth = require 'basic-auth'
+logger = require 'morgan'
 MongoClient = require('mongodb').MongoClient
 config = require '../config'
 importer = require './import'
@@ -12,8 +13,8 @@ api = express()
 
 api.set 'port', process.env.PORT || config.port || 3010
 api.use bodyParser.urlencoded(extended: false)
-
-if process.env.NODE_ENV == 'development'
+api.set 'env', process.env.NODE_ENV || 'development'
+if api.get('env') == 'development'
   api.use errorHandler()
   api.use logger('dev')
 
