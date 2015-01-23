@@ -9,7 +9,7 @@ class Requester
     request @buildUrl(path), callback
 
   post: (path, data, callback) ->
-    request.post @buildUrl(path), form: data, callback
+    request.post @buildUrl(path), body: data, callback
 
   put: (path, body, callback) ->
     request

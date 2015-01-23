@@ -4,6 +4,7 @@ http = require 'http'
 express = require 'express'
 bodyParser = require 'body-parser'
 basicAuth = require 'basic-auth'
+getRawBody = require 'raw-body'
 logger = require 'morgan'
 MongoClient = require('mongodb').MongoClient
 config = require '../config'
@@ -18,6 +19,18 @@ if api.get('env') == 'development'
   api.use logger('dev')
 
 handlers =
+  bodyParser: (req, res, next) ->
+    getRawBody req,
+      length: req.headers['content-length']
+      limit: '500mb'
+      encoding: 'utf8',
+      (err, string) ->
+        console.log 'sream'
+        return next(err) if (err)
+
+        req.rawBody = string
+        next()
+
   basicAuth: (req, res, next) ->
     user = basicAuth(req)
 
@@ -40,9 +53,7 @@ handlers =
   # Примечание:
   # все последующие запросы к 1С-Битрикс сопровождаются выставлением
   # со стороны 1С имени и значения Cookie, полученными по команде "checkauth".
-  checkAuth: (req, res) ->
-    console.log 'here'
-    res.send 'success\n'
+  checkAuth: (req, res) -> res.send 'success\n'
 
   # Далее следует запрос 1С вида:
   # 1c_exchange.php?type=sale&mode=init
@@ -59,16 +70,14 @@ handlers =
   # Идет файл для импорта, надо его сохранить
   # http://../1c_exchange.pl?type=sale&mode=file&filename=<имя файла>
   file: (req, res) ->
-    data = req.body.POSTDATA
-    unless data && config.xmlDir && req.body.filename &&
-    req.body.filename.match(/\.xml$/)
-      return res.status(400)
+    unless req.rawBody && config.xmlDir && req.query.filename &&
+    req.query.filename.match(/\.xml$/)
+      return res.status(400).send('failure\n')
 
-    filePath = path.join(config.xmlDir, req.body.filename)
+    filePath = path.join(config.xmlDir, req.query.filename)
     fs.ensureDir config.xmlDir, (err) ->
       return res.status(400).send('failure\n') if err
-
-      fs.appendFile filePath, data, (err) ->
+      fs.appendFile filePath, req.rawBody, (err) ->
         return res.status(400).send('failure\n') if err
         res.send 'success\n'
 
@@ -97,26 +106,23 @@ handlers =
 
       res.end()
 
-unless api.get('env') == 'test'
-  api.all '/api/1cexchange', handlers.basicAuth
+api.use handlers.bodyParser
+# unless api.get('env') == 'test'
+  # api.all '/api/1cexchange', handlers.basicAuth
 
 api.get '/api/1cexchange', (req, res) ->
-  switch req.body.mode
+  switch req.query.mode
     when 'checkauth'
       handlers.checkAuth(req, res)
     when 'init'
       handlers.init(req, res)
-    when 'file'
-      handlers.file(req, res)
     when 'import'
       handlers.processFiles(req, res)
     else
       res.status(400).end()
 
 api.post '/api/1cexchange', (req, res) ->
-  switch req.body.mode
-    when 'checkauth'
-      handlers.checkAuth(req, res)
+  switch req.query.mode
     when 'init'
       handlers.init(req, res)
     when 'file'

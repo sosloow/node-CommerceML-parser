@@ -32,7 +32,7 @@ module.exports = (db) ->
     bulk.execute done
 
   importAll = (done) ->
-    parser.xmlFromFile path.join(config.xmlDir, 'import.large.xml'),
+    parser.xmlFromFile path.join(config.xmlDir, 'import.xml'),
     (err, xml) ->
       return done(err) if err
       async.parallel [
