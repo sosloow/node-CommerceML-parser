@@ -16,9 +16,10 @@ module.exports = (db) ->
         acc.concat [dataArray.slice(0, 100)]
       )
 
-    async.each splitData(data, []), ((chunk, next) ->
-      db.collection(colName).insert chunk, next
-    ), done
+    async.each splitData(data, []),
+      ((chunk, next) ->
+        db.collection(colName).insert chunk, next),
+      done
 
   updateCollection = (colName, data, done) ->
     unless _.isArray(data)

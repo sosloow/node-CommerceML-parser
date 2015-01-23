@@ -59,9 +59,9 @@ describe 'importer', ->
     ]
 
     importer.saveProducts products, (prodErr) ->
-      expect(prodErr).toBe null
+      expect(prodErr).toBeFalsy()
       importer.savePrices prices, (priceErr) ->
-        expect(priceErr).toBe null
+        expect(priceErr).toBeFalsy()
 
         db.collection('products')
           .findOne _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4',

@@ -3,6 +3,7 @@ fs = require 'fs-extra'
 http = require 'http'
 express = require 'express'
 bodyParser = require 'body-parser'
+basicAuth = require 'basic-auth'
 MongoClient = require('mongodb').MongoClient
 config = require '../config'
 importer = require './import'
@@ -17,6 +18,17 @@ if process.env.NODE_ENV == 'development'
   api.use logger('dev')
 
 handlers =
+  basicAuth: (req, res, next) ->
+    user = basicAuth(req)
+
+    if user && user.name == config.auth.user && user.pass == config.auth.pass
+      return next()
+
+    res
+      .status(401)
+      .set('WWW-Authenticate', 'Basic realm="1cexchange"')
+      .end()
+
   # Обмен заказами начинается с того, что 1С посылает http-запрос
   # вместе с http-авторизацией следующего вида:
   # 1c_exchange.php?type=sale&mode=checkauth
@@ -82,6 +94,9 @@ handlers =
         return res.status(400).send('failure')
 
       res.end()
+
+unless api.get('env') == 'test'
+  api.all '/api/1cexchange', handlers.basicAuth
 
 api.post '/api/1cexchange', (req, res) ->
   switch req.body.mode
