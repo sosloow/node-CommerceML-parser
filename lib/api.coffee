@@ -70,6 +70,7 @@ handlers =
   file: (req, res) ->
     return res.status(400).send('failure\n') unless req.rawBody
     saveFile req.query.filename, req.rawBody, (err) ->
+      console.log err.stack if err
       return res.status(400).send('failure\n') if err
       res.send 'success\n'
 
