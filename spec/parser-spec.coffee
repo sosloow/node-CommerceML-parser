@@ -5,12 +5,21 @@ describe 'parser', ->
   importXml = offersXml = null
 
   it 'loads xml from file and renames it into .done', (done) ->
+    try
+      fs.renameSync(
+        './spec/files/import.test.done'
+        './spec/files/import.test.xml')
+      fs.renameSync(
+        './spec/files/offers.test.done'
+        './spec/files/offers.test.xml')
+    catch
+
     CmlParser.xmlFromFile './spec/files/import.test.xml', (err, xml) ->
       expect(err).toBe null
       importXml = xml
+      expect(fs.existsSync('./spec/files/import.test.done')).toBeTruthy()
       offersXml = CmlParser.xmlFromFile './spec/files/offers.test.xml',
         (err, xml) ->
-          expect(fs.existsSync('./spec/files/import.test.done'))
           expect(err).toBe null
           offersXml = xml
           done()

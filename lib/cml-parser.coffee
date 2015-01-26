@@ -72,7 +72,9 @@ xmlFromFile = (path, done) ->
     return done(err) if err
     try
       xml = parser.parseXml(data)
-      done(null, xml)
+      fs.rename path, path.replace(/\.xml$/, '.done'), (err) ->
+        return done(err) if err
+        done(null, xml)
     catch err
       done(err)
 
