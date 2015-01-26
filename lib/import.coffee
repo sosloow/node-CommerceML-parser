@@ -5,21 +5,30 @@ parser = require './cml-parser'
 config = require '../config'
 
 module.exports = (db) ->
-  saveToCollection = (colName, data, done) ->
+  saveToCollection = (colName, data, options, done) ->
+    if typeof options == 'function'
+      done = options
+      options = upsert: true
     unless _.isArray(data)
       return done(Error('data must be an array'))
 
     splitData = (dataArray, acc) ->
-      return acc.concat(dataArray) if dataArray.length < 100
+      return acc.concat([dataArray]) if dataArray.length < 100
       splitData(
         dataArray.slice(100, dataArray.length)
-        acc.concat [dataArray.slice(0, 100)]
-      )
+        acc.concat [dataArray.slice(0, 100)])
 
-    async.each splitData(data, []),
-      ((chunk, next) ->
-        db.collection(colName).insert chunk, next),
-      done
+    if options.upsert
+      async.each splitData(data, []), ((chunk, next) ->
+        bulk = db.collection(colName).initializeUnorderedBulkOp()
+        chunk.forEach (entry) ->
+          bulk.find(_id: entry._id).upsert()
+            .updateOne $set: _.omit(entry, '_id')
+        bulk.execute next), done
+    else
+      db.collection(colName).remove ->
+        async.each splitData(data, []), ((chunk, next) ->
+          db.collection(colName).insert chunk, next), done
 
   updateCollection = (colName, data, done) ->
     unless _.isArray(data)
