@@ -11,7 +11,7 @@ module.exports = (config) ->
       fs.appendFile fullPath, data, done
 
   saveImage = (filePath, data, done) ->
-    dirPath = path.join config.imageDir, path.dirname(filePath)
+    dirPath = path.join config.imagesDir, path.dirname(filePath)
     fs.ensureDir dirPath, (err) ->
       return done(err) if err
       fullPath = path.join(dirPath, filePath)

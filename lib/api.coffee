@@ -69,7 +69,6 @@ handlers =
   # http://../1c_exchange.pl?type=sale&mode=file&filename=<имя файла>
   file: (req, res) ->
     return res.status(400).send('failure\n') unless req.rawBody
-    console.log saveFile.toString()
     saveFile req.query.filename, req.rawBody, (err) ->
       return res.status(400).send('failure\n') if err
       res.send 'success\n'
