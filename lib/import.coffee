@@ -12,12 +12,16 @@ module.exports = (db) ->
     unless _.isArray(data)
       return done(Error('data must be an array'))
 
+    # split long arrays into smaller chunks
     splitData = (dataArray, acc) ->
       return acc.concat([dataArray]) if dataArray.length < 100
       splitData(
         dataArray.slice(100, dataArray.length)
         acc.concat [dataArray.slice(0, 100)])
 
+    # map records in each chunk
+    # into Bulk of mongo upsert operations,
+    # inserted separatedly
     if options.upsert
       async.each splitData(data, []), ((chunk, next) ->
         bulk = db.collection(colName).initializeUnorderedBulkOp()
@@ -26,6 +30,8 @@ module.exports = (db) ->
             .updateOne $set: _.omit(entry, '_id')
         bulk.execute next), done
     else
+      # if not upserting drop collection
+      # and re-insert each chunk
       db.collection(colName).remove ->
         async.each splitData(data, []), ((chunk, next) ->
           db.collection(colName).insert chunk, next), done
@@ -34,6 +40,7 @@ module.exports = (db) ->
     unless _.isArray(data)
       return done(Error('data must be an array'))
 
+    # send update operations in bulk
     bulk = db.collection(colName).initializeUnorderedBulkOp()
     data.forEach (entry) ->
       bulk.find(_id: entry._id).updateOne($set: _.omit(entry, '_id'))
@@ -57,7 +64,7 @@ module.exports = (db) ->
           return done(err) if err
           updateCollection 'products', parser.parsePrices(offersXml), done
       else
-        done('invalid filename. Must be import.xml or offers.xml')
+        done Error('invalid filename. Must be import.xml or offers.xml')
 
   return {
     saveGroups: _.partial(saveToCollection, 'groups')

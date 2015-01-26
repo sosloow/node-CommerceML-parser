@@ -1,14 +1,16 @@
+fs = require 'fs'
 CmlParser = require '../lib/cml-parser'
 
 describe 'parser', ->
   importXml = offersXml = null
 
-  it 'loads xml from file', (done) ->
+  it 'loads xml from file and renames it into .done', (done) ->
     CmlParser.xmlFromFile './spec/files/import.test.xml', (err, xml) ->
       expect(err).toBe null
       importXml = xml
       offersXml = CmlParser.xmlFromFile './spec/files/offers.test.xml',
         (err, xml) ->
+          expect(fs.existsSync('./spec/files/import.test.done'))
           expect(err).toBe null
           offersXml = xml
           done()

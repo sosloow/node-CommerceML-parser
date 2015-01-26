@@ -99,7 +99,7 @@ handlers =
     importer.processFile req.query.filename, (err) ->
       if err
         console.log err.stack
-        return res.status(400).send('failure\n')
+        return res.status(400).send "failure\n#{err.message}"
 
       res.send('success\nxml processed\n')
 
