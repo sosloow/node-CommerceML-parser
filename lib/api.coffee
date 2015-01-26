@@ -8,6 +8,7 @@ logger = require 'morgan'
 MongoClient = require('mongodb').MongoClient
 config = require '../config'
 importer = require './import'
+saveFile = require('./file-save')(config)
 
 api = express()
 
@@ -67,16 +68,11 @@ handlers =
   # Идет файл для импорта, надо его сохранить
   # http://../1c_exchange.pl?type=sale&mode=file&filename=<имя файла>
   file: (req, res) ->
-    unless req.rawBody && config.xmlDir && req.query.filename &&
-    req.query.filename.match(/\.xml$/)
-      return res.status(400).send('failure\n')
-
-    filePath = path.join(config.xmlDir, req.query.filename)
-    fs.ensureDir config.xmlDir, (err) ->
+    return res.status(400).send('failure\n') unless req.rawBody
+    console.log saveFile.toString()
+    saveFile req.query.filename, req.rawBody, (err) ->
       return res.status(400).send('failure\n') if err
-      fs.appendFile filePath, req.rawBody, (err) ->
-        return res.status(400).send('failure\n') if err
-        res.send 'success\n'
+      res.send 'success\n'
 
   # На последнем шаге по запросу из 1С проводится пошаговая загрузка каталога:
   # 1c_exchange.php?type=catalog&mode=import&filename=<имя файла>
