@@ -22,7 +22,7 @@ module.exports = (config) ->
     if filePath.match(/\.xml$/)
       saveXml(filePath, data, done)
     else if filePath.match(/\.(png|jpg|jpeg|gif)$/)
-      saveImage
+      saveImage(filePath, data, done)
     else
       done message: 'file extension is not accepted'
 
