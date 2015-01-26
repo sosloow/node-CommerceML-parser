@@ -14,6 +14,7 @@ parseGroups = (xml) ->
     children = groupXml.find('./Группы/Группа')
     _id = textNode(groupXml, 'Ид')
     currentGroup =
+      _id: _id
       name: textNode(groupXml, 'Наименование')
       parent: parent_Id
       children: children.map (child) -> textNode(child, 'Ид')
