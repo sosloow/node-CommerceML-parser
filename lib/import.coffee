@@ -6,7 +6,7 @@ config = require '../config'
 
 module.exports = (db) ->
   saveToCollection = (colName, data, options, done) ->
-    if typeof options == 'function'
+    if arguments.length == 3 && typeof options == 'function'
       done = options
       options = upsert: true
     unless _.isArray(data)
@@ -47,24 +47,32 @@ module.exports = (db) ->
 
     bulk.execute done
 
+  # xml files get parsed, images skipped for now
   processFile = (filename, done) ->
     switch filename
       when 'import.xml'
         parser.xmlFromFile path.join(config.xmlDir, 'import.xml'),
         (err, xml) ->
           return done(err) if err
+          options = upsert: parser.parseUpdateReinsertFlag(xml)
           async.parallel [
-            _.partial saveToCollection, 'groups', parser.parseGroups(xml)
-            _.partial saveToCollection, 'properties', parser.parseProps(xml)
-            _.partial saveToCollection, 'products', parser.parseProducts(xml)
+            _.partial saveToCollection, 'groups', parser.parseGroups(xml), options
+            _.partial saveToCollection, 'properties', parser.parseProps(xml), options
+            _.partial saveToCollection, 'products', parser.parseProducts(xml), options
           ], done
+
       when 'offers.xml'
         parser.xmlFromFile path.join(config.xmlDir, 'offers.xml'),
         (err, offersXml) ->
           return done(err) if err
           updateCollection 'products', parser.parsePrices(offersXml), done
+
       else
-        done Error('invalid filename. Must be import.xml or offers.xml')
+        if filename.match /\.(jpg|png|jpeg|gif)$/
+          console.log 'processing image...'
+          done(null)
+        else
+          done message: 'cant import invalid file'
 
   return {
     saveGroups: _.partial(saveToCollection, 'groups')

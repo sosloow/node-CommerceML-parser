@@ -42,6 +42,7 @@ parseProducts = (xml) ->
     .map (prodNode) ->
       _id: textNode(prodNode, 'Ид')
       name: textNode(prodNode, 'Наименование')
+      code: textNode(prodName, 'Код')
       baseUnit: textNode(prodNode, 'БазоваяЕдиница')
       groups: prodNode.find('./Группы/Ид').map (_id) -> _id.text()
       properties: prodNode.find('./ЗначенияСвойств/ЗначенияСвойства')
@@ -67,6 +68,10 @@ parsePrices = (xml) ->
           name: _.find(priceTypes, (pt) ->
             pt._id == textNode(priceNode, 'ИдТипаЦены')).name
 
+parseUpdateReinsertFlag = (xml) ->
+  xml.get('/КоммерческаяИнформация/Каталог')
+    .attr('СодержитТолькоИзменения').value() == 'true'
+
 xmlFromFile = (path, done) ->
   fs.readFile path, 'utf8', (err, data) ->
     return done(err) if err
@@ -84,3 +89,4 @@ module.exports =
   parseProps: parseProps
   parseProducts: parseProducts
   parsePrices: parsePrices
+  parseUpdateReinsertFlag: parseUpdateReinsertFlag

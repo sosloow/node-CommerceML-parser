@@ -52,3 +52,6 @@ describe 'parser', ->
 
     expect(priceList[0]._id).toBe '3c586b6e-dcbd-11e3-9034-bcaec58df7a4'
     expect(priceList[0].prices[0].price).toBe '11.50'
+
+  it 'gets update flag', ->
+    expect(CmlParser.parseUpdateReinsertFlag(importXml)).toBe false
