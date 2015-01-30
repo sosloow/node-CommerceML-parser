@@ -42,7 +42,7 @@ parseProducts = (xml) ->
     .map (prodNode) ->
       _id: textNode(prodNode, 'Ид')
       name: textNode(prodNode, 'Наименование')
-      code: textNode(prodName, 'Код')
+      code: textNode(prodNode, 'Код')
       baseUnit: textNode(prodNode, 'БазоваяЕдиница')
       groups: prodNode.find('./Группы/Ид').map (_id) -> _id.text()
       properties: prodNode.find('./ЗначенияСвойств/ЗначенияСвойства')

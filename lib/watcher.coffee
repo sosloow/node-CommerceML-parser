@@ -11,7 +11,7 @@ module.exports = (importer) ->
     walker.on 'file', (root, fileStat, next) ->
       fullPath = path.resolve(root, fileStat.name)
       fs.readFile fullPath, (buffer) ->
-        importer.processFile fileStat.name, next
+        importer.processFile fullPath, next
 
   start = (dir) ->
     checkNewFiles(dir)

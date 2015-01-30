@@ -7,9 +7,23 @@ describe 'importer', ->
     MongoClient.connect url, (err, testDb) ->
       return done(err) if err
       db = testDb
-      importer = require('../lib/import')(testDb)
+      importer = require('../lib/import')(testDb,
+        imagesDir: './spec/files/images',
+        imagesWebDir: 'images')
 
-      db.dropDatabase done
+      products = [
+        {
+          _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4'
+          name: 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
+        }
+        {
+          _id: '1413801911001'
+          name: 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
+        }
+      ]
+
+      db.dropDatabase (err) ->
+        db.collection('products').insert products, done
 
   it 'saves groups data to mongo collection', (done) ->
     data = [
@@ -36,36 +50,38 @@ describe 'importer', ->
         done()
 
   it 'updates products with prices', (done) ->
-    products = [
-      {
-        _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4'
-        name: 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
-      }
-      {
-        _id: '3c586b6e-dcbd-22e3-9034-bcaec58df7a4'
-        name: 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
-      }
-    ]
-
     prices = [
       {
         _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4'
         prices: [{price: '11'}]
       }
       {
-        _id: '3c586b6e-dcbd-22e3-9034-bcaec58df7a4'
+        _id: '1413801911001'
         prices: [{price: '12'}]
       }
     ]
 
-    importer.saveProducts products, (prodErr) ->
-      expect(prodErr).toBeFalsy()
-      importer.savePrices prices, (priceErr) ->
-        expect(priceErr).toBeFalsy()
+    importer.savePrices prices, (priceErr) ->
+      expect(priceErr).toBeFalsy()
 
-        db.collection('products')
-          .findOne _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4',
-          (err, prod) ->
-            expect(prod.name).toBe 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
-            expect(prod.prices).toContain price: '11'
-            done()
+      db.collection('products')
+        .findOne _id: '3c586b6e-dcbd-11e3-9034-bcaec58df7a4',
+        (err, prod) ->
+          expect(prod.name).toBe 'Скоба металлич.с одним отверст.Ф48-50мм(50шт)'
+          expect(prod.prices).toContain price: '11'
+          done()
+
+  it 'returns a list of image files with ids', (done) ->
+    importer.listImageFiles (err, images) ->
+      expect(err).toBeFalsy()
+      expect(images[0].images).toContain 'images/1413801911001.jpeg'
+      done()
+
+  it 'updates products with images', (done) ->
+    importer.saveImages (err) ->
+      expect(err).toBeFalsy()
+      db.collection('products')
+        .findOne _id: '1413801911001', (err, prod) ->
+          expect(prod).toBeTruthy()
+
+          done()

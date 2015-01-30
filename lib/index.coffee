@@ -1,16 +1,17 @@
 http = require 'http'
-config = require '../config'
 MongoClient = require('mongodb').MongoClient
 
 module.exports =
   init: (options) ->
+    options ?= require '../config'
+
     unless options.path
       throw Error('options.path not present')
-    MongoClient.connect config.dbUri, (err, db) ->
+    MongoClient.connect options.dbUri, (err, db) ->
       throw err if err
 
-      importer = require('./import')(db)
-      api = require('./api')(importer)
+      importer = require('./import')(db, options)
+      api = require('./api')(importer, options)
 
       http.createServer(api).listen api.get('port'), ->
         console.log "Express server listening on port #{api.get('port')}"

@@ -2,10 +2,11 @@ express = require 'express'
 basicAuth = require 'basic-auth'
 getRawBody = require 'raw-body'
 logger = require 'morgan'
-config = require '../config'
-saveFile = require('./file-save')(config)
 
-module.exports = (importer) ->
+module.exports = (importer, config) ->
+  config ?= require '../config'
+  saveFile = require('./file-save')(config)
+
   api = express()
 
   api.set 'port', process.env.PORT || config.port || 3010

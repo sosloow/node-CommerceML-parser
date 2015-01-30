@@ -1,10 +1,13 @@
 path = require 'path'
+fs = require 'fs'
 _ = require 'lodash'
 async = require 'async'
+walk = require 'walk'
 parser = require './cml-parser'
-config = require '../config'
 
-module.exports = (db) ->
+module.exports = (db, config) ->
+  config ?= require '../config'
+
   saveToCollection = (colName, data, options, done) ->
     if arguments.length == 3 && typeof options == 'function'
       done = options
@@ -47,9 +50,24 @@ module.exports = (db) ->
 
     bulk.execute done
 
-  # xml files get parsed, images skipped for now
+  listImageFiles = (done) ->
+    fs.readdir config.imagesDir, (err, files) ->
+      return done() unless files
+      done null, _.compact files.map (file) ->
+        return unless path.extname(file).match(/(jpe?g|png|gif)/)
+        id = file.match(/^(.+)\..+?$/)[1]
+        webPath = path.join(config.imagesWebDir, file)
+        return unless id.match(/^[0-9a-f\-]+$/)
+        return {
+          _id: id
+          images: [webPath]
+        }
+
+  # parse freshly uploaded xml, link images to
+  # the product docs in mongo, and resize them
   processFile = (filename, done) ->
-    switch filename
+    basename = path.basename(filename)
+    switch basename
       when 'import.xml'
         parser.xmlFromFile path.join(config.xmlDir, 'import.xml'),
         (err, xml) ->
@@ -69,15 +87,18 @@ module.exports = (db) ->
 
       else
         if filename.match /\.(jpg|png|jpeg|gif)$/
-          console.log 'processing image...'
-          done(null)
+          fs.rename filename, path.join(config.imagesDir, basename), done
         else
           done message: 'cant import invalid file'
 
   return {
+    listImageFiles: listImageFiles
+    processFile: processFile
     saveGroups: _.partial(saveToCollection, 'groups')
     saveProperties: _.partial(saveToCollection, 'properties')
     saveProducts: _.partial(saveToCollection, 'products')
     savePrices: _.partial(updateCollection, 'products')
-    processFile: processFile
+    saveImages: (done) ->
+      listImageFiles (err, images) ->
+        updateCollection 'products', images, done
   }

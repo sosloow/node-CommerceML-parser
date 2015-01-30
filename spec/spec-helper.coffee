@@ -24,7 +24,7 @@ class Requester
 exports.withServer = (callback) ->
   jasmine.asyncSpecWait()
 
-  app = require("../lib/api.coffee")
+  app = require("../lib/api.coffee")()
 
   server = app.listen 7665
 
