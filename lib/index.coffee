@@ -20,4 +20,8 @@ module.exports =
 
       watcher.start(options.path)
 
-module.exports.init(path: './files')
+module.exports.init
+  path: './files'
+  dbUri: 'mongodb://localhost:27017/import'
+  imagesDir: './files/images'
+  xmlDir: './files/xml'

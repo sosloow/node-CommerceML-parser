@@ -30,7 +30,7 @@ module.exports = (importer, config) ->
       user = basicAuth(req)
 
       if user && user.name == config.auth.user && user.pass == config.auth.pass
-        return next()
+      return next()
 
       res
         .status(401)

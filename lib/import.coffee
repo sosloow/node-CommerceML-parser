@@ -66,6 +66,8 @@ module.exports = (db, config) ->
   # parse freshly uploaded xml, link images to
   # the product docs in mongo, and resize them
   processFile = (filename, done) ->
+    return message: 'provide filename param' unless filename
+
     basename = path.basename(filename)
     switch basename
       when 'import.xml'
